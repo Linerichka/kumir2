@@ -161,6 +161,8 @@ build:mac:
     - cd build
     - export PATH=$QTDIR_MAC/bin:$PATH
     - export MACOSX_DEPLOYMENT_TARGET=10.9
+    - echo $QTDIR_MAC
+    - which macdeployqt
     - date
     - cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DUSE_QT=5 -DCMAKE_BUILD_TYPE=Release ..
     - make -k -j8
@@ -180,13 +182,15 @@ dist:mac:
     - cd build
     - export PATH=$QTDIR_MAC/bin:$PATH
     - export MACOSX_DEPLOYMENT_TARGET=10.9
+    - echo $QTDIR_MAC
+    - which macdeployqt
     - security unlock-keychain -p $MAC_KEYCHAIN_PASS
     - security lock-keychain
     - echo macdeployqt Kumir.app "$CI_MDPA"
-    - macdeployqt Kumir.app
+    - $QTDIR_MAC/bin/macdeployqt Kumir.app
     - echo "Libraries = Frameworks" >> Kumir.app/Contents/Resources/qt.conf
     - echo macdeployqt Kumir.app "$CI_MDPA" -dmg
-    - macdeployqt Kumir.app -dmg
+    - $QTDIR_MAC/bin/macdeployqt Kumir.app -dmg
     - mv Kumir.dmg ../Kumir-$CI_COMMIT_REF_NAME-$CI_PIPELINE_ID.dmg
 
 
