@@ -188,10 +188,10 @@ dist:mac:
 #    - security unlock-keychain -p $MAC_KEYCHAIN_PASS
 #    - security lock-keychain
 #    - macdeployqt Kumir.app "$CI_MDPA"
-    - $QTDIR_MAC/bin/macdeployqt Kumir.app
+    - macdeployqt Kumir.app
     - echo "Libraries = Frameworks" >> Kumir.app/Contents/Resources/qt.conf
 #    - macdeployqt Kumir.app "$CI_MDPA" -dmg
-    - $QTDIR_MAC/bin/macdeployqt Kumir.app -dmg
+    - macdeployqt Kumir.app -dmg
     - mv Kumir.dmg ../Kumir-$CI_COMMIT_REF_NAME-$CI_PIPELINE_ID.dmg
 
 
