@@ -6,6 +6,7 @@ build:winxp:
   stage: build
   tags:
     - winxp
+  needs: []
   artifacts:
     name: arts-%CI_PIPELINE_ID%-winxp-build
     expire_in: 1 hour
@@ -27,8 +28,8 @@ dist:winxp:
   stage: dist
   tags:
     - winxp
-  dependencies:
-    - build:winxp
+  needs:
+    - job: build:winxp
   artifacts:
     name: arts-%CI_PIPELINE_ID%-winxp-dist
     paths:
@@ -65,6 +66,7 @@ build:win32:
   stage: build
   tags:
     - win32
+  needs: []
   artifacts:
     name: arts-%CI_PIPELINE_ID%-win32-build
     expire_in: 1 hour
@@ -92,8 +94,8 @@ dist:win32:
   stage: dist
   tags:
     - win32
-  dependencies:
-    - build:win32
+  needs:
+    - job: build:win32
   artifacts:
     name: arts-%CI_PIPELINE_ID%-win32-dist
     paths:
@@ -149,6 +151,7 @@ build:mac:
   stage: build
   tags:
     - mac_old
+  needs: []
   artifacts:
     name: arts-$CI_PIPELINE_ID-mac-build
     expire_in: 1 hour
@@ -173,8 +176,8 @@ dist:mac:
   stage: dist
   tags:
     - mac_old
-  dependencies:
-    - build:mac
+  needs:
+    - job: build:mac
   artifacts:
     name: arts-$CI_PIPELINE_ID-mac-dist
     paths:
@@ -199,6 +202,7 @@ build:linux:
   stage: build
   tags:
     - linux
+  needs: []
   artifacts:
     name: arts-$CI_PIPELINE_ID-linux-build
     expire_in: 1 hour
@@ -219,8 +223,8 @@ dist:linux:
   stage: dist
   tags:
     - linux
-  dependencies:
-    - build:linux
+  needs:
+    - job: build:linux
   artifacts:
     name: arts-$CI_PIPELINE_ID-linux-dist
     paths:
