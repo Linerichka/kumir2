@@ -58,6 +58,7 @@ dist:winxp:
     - call %PYTHON_EXECUTABLE% scripts\query_version_info.py --mode=nsis_include_file --out=build\pack\nsis_version_info.nsh
     - cd build\pack
     - copy ..\..\kumir2.nsi .
+    - echo "%NSIS_EXECUTABLE%"
     - call "%NSIS_EXECUTABLE%" kumir2.nsi
     - move kumir2-*-install.exe ..\..\
 
@@ -142,6 +143,7 @@ dist:win32:
     - type run_git_archive.cmd
     - call run_git_archive.cmd
     - cd build\pack
+    - echo "%NSIS_EXECUTABLE%"
     - call "%NSIS_EXECUTABLE%" kumir2.nsi
     - move kumir2-*-install.exe ..\..\
 
