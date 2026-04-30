@@ -39,23 +39,27 @@ Section "Kumir" Kumir
     SetOutPath "$INSTDIR"
     File LICENSE_RU.rtf
     #File vcredist_x86.exe
+
     SetOutPath "$INSTDIR\bin"
     File /r bin\*
+
     SetOutPath "$INSTDIR\lib"
     File /r lib\*
+
     SetOutPath "$INSTDIR\share"
     File /r share\*
 
-    SetOutPath "$INSTDIR\src"
-    File /nonfatal /r src\*
+    #SetOutPath "$INSTDIR\src"
+    #File /nonfatal /r src\*
+
     #SetOutPath "$INSTDIR\include"
     #File /r /nonfatal "include\*"
 
-    SetOutPath "$INSTDIR\llvm-mingw"
-    File /nonfatal /r llvm-mingw\*
+    #SetOutPath "$INSTDIR\llvm-mingw"
+    #File /nonfatal /r llvm-mingw\*
 
-    SetOutPath "$INSTDIR\python"
-    File /nonfatal /r python\*
+    #SetOutPath "$INSTDIR\python"
+    #File /nonfatal /r python\*
 
 
     #ExecWait '"$INSTDIR\vcredist_x86.exe" /passive'
@@ -99,8 +103,13 @@ functionEnd
 
 Section "uninstall"
 
+    RMDir /r /REBOOTOK "$INSTDIR\bin"
+    RMDir /r /REBOOTOK "$INSTDIR\lib"
+    RMDir /r /REBOOTOK "$INSTDIR\share"
+    Delete /REBOOTOK "$INSTDIR\LICENSE_RU.rtf"
     Delete /REBOOTOK "$INSTDIR\uninstall.exe"
-    RMDir /r /REBOOTOK "$INSTDIR"
+    RMDir /REBOOTOK "$INSTDIR"
+
     RMDir /r /REBOOTOK "$SMPROGRAMS\Кумир ${VERSION_SUFFIX}"
 
     DeleteRegKey HKCR ".kum"
