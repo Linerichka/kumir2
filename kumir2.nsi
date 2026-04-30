@@ -1,3 +1,4 @@
+ManifestDPIAware true
 !include MUI2.nsh
  
 # This include is used only by build system
