@@ -2,20 +2,40 @@
 #include "ui_mainwindow.h"
 #include "interface.h"
 #include "csInterface.h"
+#include "editdialog.h"
+#include "newkursdialog.h"
+#include "kumzadanie.h"
+#include "course_model.h"
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QSettings>
 #include <QProcess>
 
+#include <QDebug>
+#include <QFileDialog>
+
 MainWindowTask::MainWindowTask(QWidget *parent) :
 	QMainWindow(parent),
-	ui(new Ui::MainWindowTask)
+	ui(new Ui::MainWindowTask),
+	task(new KumZadanie()),
+	changes(new courseChanges)
 {
 	cursFile = "";
 	course = NULL;
 	curDir = "";
 	progChange.clear();
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToQuit()));
+	
+}
+
+MainWindowTask::~MainWindowTask()
+{
+	delete changes;
+	changes = 0;
+	delete task;
+	task = 0;
+	delete ui;
+	ui = 0;
 }
 
 void MainWindowTask::setup()
@@ -27,11 +47,10 @@ void MainWindowTask::setup()
 	settings->setIniCodec("UTF-8");
 	lastFiles = settings->value("RescentFiles").toStringList();
 	customMenu.hide();
-	connect(ui->loadCurs, SIGNAL(activated()), this, SLOT(loadCourse()));
-	connect(ui->actionSave, SIGNAL(activated()), this, SLOT(saveCourse()));
+	connect(ui->loadCurs, SIGNAL(triggered()), this, SLOT(loadCourse()));
+	connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveCourse()));
 	connect(ui->treeView, SIGNAL(clicked(QModelIndex)), this, SLOT(showText(QModelIndex)));
 	connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startEdit(QModelIndex)));
-	qDebug() << "Check Connect tttttttttttttttttt";
 	connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(Close()));
 	connect(ui->treeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenuRequested(QPoint)));
 
@@ -51,7 +70,7 @@ void MainWindowTask::setup()
 	connect(ui->actionDown, SIGNAL(triggered()), this, SLOT(moveDown()));
 	connect(ui->actionAdd, SIGNAL(triggered()), this, SLOT(addTask()));
 	connect(ui->addDeep, SIGNAL(triggered()), this, SLOT(addDeepTask()));
-	connect(ui->actionSaveK, SIGNAL(triggered()), this, SLOT(saveKurs()));
+	connect(ui->actionSaveK, SIGNAL(triggered()), this, SLOT(saveCourse()));
 	connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveKursAs()));
 	connect(ui->actionRemove, SIGNAL(triggered()), this, SLOT(deleteTask()));
 	connect(ui->actionMakeSection, SIGNAL(triggered()), this, SLOT(makeSection()));
@@ -85,11 +104,6 @@ void MainWindowTask::setup()
 	onTask = false;
 	cursFile = "";
 	createRescentMenu();
-}
-
-MainWindowTask::~MainWindowTask()
-{
-	delete ui;
 }
 
 void MainWindowTask::changeEvent(QEvent *e)
@@ -136,7 +150,7 @@ void MainWindowTask::loadCourseData(const QString fileName)
 	onTask = false;
 	ui->actionSave->setEnabled(true);
 
-	changes.cleanChanges();
+	changes->cleanChanges();
 	cursFile = fileName;
 	setEditTaskEnabled(true);
 	ui->menuMove->setEnabled(true);
@@ -199,7 +213,7 @@ void MainWindowTask::loadMarks(const QString fileName)
 		int mark = marksElList.at(i).toElement().attribute("mark").toInt();
 		qDebug() << "task:" << taskId << " mark:" << mark;
 		course->setMark(taskId, mark);
-		changes.setMark(taskId, mark);
+		changes->setMark(taskId, mark);
 	}
 
 	qDebug() << "Loading user prgs...";
@@ -439,33 +453,33 @@ void MainWindowTask::showText(const QModelIndex &index)
 
 void MainWindowTask::refreshIspsNEnv()
 {
-	task.isps = course->Modules(curTaskIdx.internalId());
-	qDebug() << "ISPS" << task.isps;
+	task->isps = course->Modules(curTaskIdx.internalId());
+	qDebug() << "ISPS" << task->isps;
 	ui->ispList->clear();
 	ui->fieldsList->clear();
 	ui->addFieldButt->setEnabled(false);
-	for (int i = 0; i < task.isps.count(); i++) {
-		ui->ispList->addItem(task.isps[i]);
+	for (int i = 0; i < task->isps.count(); i++) {
+		ui->ispList->addItem(task->isps[i]);
 		// task.Scripts.append(loadScript(course->Script(curTaskIdx.internalId(),task.isps[i])));
-		QStringList t_fields = course->Fields(curTaskIdx.internalId(), task.isps[i]);
+		QStringList t_fields = course->Fields(curTaskIdx.internalId(), task->isps[i]);
 		qDebug() << "fields" << t_fields;
-		task.fields.clear();
+		task->fields.clear();
 		for (int j = 0; j < t_fields.count(); j++) {
 
-			task.fields.insertMulti(task.isps[i], curDir + '/' + t_fields[j]);
+			task->fields.insertMulti(task->isps[i], curDir + '/' + t_fields[j]);
 			qDebug() << curDir + '/' + t_fields[j];
 
 		};
-		qDebug() << "Fields!!!!" << task.fields;
+		qDebug() << "Fields!!!!" << task->fields;
 	}
-	if (task.isps.count() == 1) {
-		ui->fieldsList->addItems(course->Fields(curTaskIdx.internalId(), task.isps[0]));
+
+	if (task->isps.count() == 1) {
+		ui->fieldsList->addItems(course->Fields(curTaskIdx.internalId(), task->isps[0]));
 		ui->ispList->setCurrentItem(ui->ispList->item(0));
 		ui->addFieldButt->setEnabled(true);
-	};
+	}
 
 	ui->remFieldButt->setEnabled(false);
-
 }
 
 void MainWindowTask::loadHtml(QString fileName)
@@ -505,21 +519,21 @@ void MainWindowTask::startTask()
 
 	QString progFile = course->progFile(curTaskIdx.internalId());
 	_interface->setTesting(loadTestAlg(course->getTaskCheck(curTaskIdx)));
-	task.isps = course->Modules(curTaskIdx.internalId());
-	qDebug() << "ISPS" << task.isps;
-	for (int i = 0; i < task.isps.count(); i++) {
+	task->isps = course->Modules(curTaskIdx.internalId());
+	qDebug() << "ISPS" << task->isps;
+	for (int i = 0; i < task->isps.count(); i++) {
 
 		// task.Scripts.append(loadScript(course->Script(curTaskIdx.internalId(),task.isps[i])));
-		QStringList t_fields = course->Fields(curTaskIdx.internalId(), task.isps[i]);
+		QStringList t_fields = course->Fields(curTaskIdx.internalId(), task->isps[i]);
 		qDebug() << "fields" << t_fields;
-		task.fields.clear();
+		task->fields.clear();
 		for (int j = 0; j < t_fields.count(); j++) {
 
-			task.fields.insertMulti(task.isps[i], curDir + '/' + t_fields[j]);
+			task->fields.insertMulti(task->isps[i], curDir + '/' + t_fields[j]);
 			qDebug() << curDir + '/' + t_fields[j];
 
 		};
-		qDebug() << "Fields!!!!" << task.fields;
+		qDebug() << "Fields!!!!" << task->fields;
 	}
 	qDebug() << "MODULES:" << course->Modules(curTaskIdx.internalId());
 	if (!_interface->startNewTask(course->Modules(curTaskIdx.internalId()))) {
@@ -620,7 +634,7 @@ void MainWindowTask::saveCourseFile()
 	}
 	//END USER PROGRAMS
 
-	QMapIterator<int, int> i(changes.marksChanged);
+	QMapIterator<int, int> i(changes->marksChanged);
 	while (i.hasNext()) {
 		i.next();
 		QDomElement mrk = saveXml.createElement("MARK");

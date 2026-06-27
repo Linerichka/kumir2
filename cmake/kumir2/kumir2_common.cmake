@@ -24,11 +24,13 @@ endif(NOT DEFINED USE_QT)
 if(${USE_QT} GREATER 4)
     # Find Qt5
     find_package(Qt5 ${MINIMUM_QT5_VERSION} COMPONENTS Core Widgets REQUIRED)
+    message(STATUS "Qt5 found at ${_qt5Core_install_prefix}")
     set(QT_LRELEASE_EXECUTABLE "${_qt5Core_install_prefix}/bin/lrelease")
 else()
     # Find Qt4
     set(QT_USE_QTMAIN 1)
     find_package(Qt4 ${MINIMUM_QT4_VERSION} COMPONENTS QtCore REQUIRED)
+    message(STATUS "Qt4 found at ${QT_USE_FILE}")
     include(${QT_USE_FILE})
 endif()
 
